@@ -2,7 +2,7 @@ require('dotenv').load();
 
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 //POST 데이터 처리. res.json()
 var bodyParser  = require('body-parser');
