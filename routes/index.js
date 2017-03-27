@@ -3,8 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 //mongo db 연결
-// var db = require('./localMongoDB');
-var db = require('./azureMongoDB');
+var db = require('./mongoDB');
 
 //url 패턴 중 collectionName 을 db table로 지정
 router.param('collectionName', function(req, res, next, collectionName) {
@@ -17,7 +16,7 @@ router.get('/api/:collectionName', function(req, res) {
 
 	req.collection.find().toArray(function(err, results) {
 		if (err) return next(err)
-		if (!results) return res.json({ "result" : "No Notes to display."});
+		if (!results) return res.json({ "resultCode" : "NODATA", "resultDesc" : "No data."});
 		var collectionName = req.params.collectionName;
 		// json 키값 동적 할당
 		var jsonData = {};
@@ -40,16 +39,18 @@ router.get('/api/:collectionName/:key', function(req, res) {
 		keyName = "name";
 	}else if(collectionName=="note"){
 		keyName = "title";
+	}else if(collectionName=="pizza"){
+		keyName = "pizzaName";
 	}
 	jsonData[keyName] = key;
 	
 	req.collection.findOne(jsonData, function(err, result) {
 		if (err) return next(err)
-		if (!result) return res.json({ "result" : "No Notes to display."});
+		if (!result) return res.json({ "resultCode" : "NODATA", "resultDesc" : "No data."});
 
 		var jsonData = {};
 		jsonData[collectionName + "s"] = result;
-
+		console.log(result);
 		res.json(jsonData);
 	})
 })
