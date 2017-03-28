@@ -1,15 +1,22 @@
 //index.js
 var express = require('express');
 var router = express.Router();
+// var bodyParser  = require('body-parser');
+// router.use(bodyParser.urlencoded({ extended: true }));
+// router.use(bodyParser.json());
 
 //mongo db 연결
 var db = require('./mongoDB');
 
+
 //url 패턴 중 collectionName 을 db table로 지정
 router.param('collectionName', function(req, res, next, collectionName) {
 	req.collection = db.collection(collectionName)
+	console.log("collectionName111 : "+collectionName);
+
 	return next()
 });
+
 
 // 해당 테이블 전체 조회
 router.get('/api/:collectionName', function(req, res) {
@@ -27,11 +34,14 @@ router.get('/api/:collectionName', function(req, res) {
 	})
 });
 
+
 // 특정 이름 조회(api용)
 router.get('/api/:collectionName/:key', function(req, res) {
 	var collectionName = req.params.collectionName;
 	var key = req.params.key;
 	var jsonData = {};
+	
+	console.log("key : "+key);
 	
 	// 동적으로 table 조회 하기 위해
 	var keyName = "";
@@ -44,6 +54,7 @@ router.get('/api/:collectionName/:key', function(req, res) {
 	}
 	jsonData[keyName] = key;
 	
+	console.log(jsonData);
 	req.collection.findOne(jsonData, function(err, result) {
 		if (err) return next(err)
 		if (!result) return res.json({ "resultCode" : "NODATA", "resultDesc" : "No data."});
@@ -87,7 +98,28 @@ router.post('/api/:collectionName/save',(req, res, next) => {
          });
          
      });
-})
+});
+
+
+// post 방식으로 특정 key 값 조회하기
+router.post('/api/:collectionName',(req, res, next) => {
+	var collectionName = req.params.collectionName;
+	var jsonData = {};
+
+	// 1.넘어온 값을 받는다.
+	var pizzaName = req.body.pizzaName;
+	//2. json 형태로 만든다.
+	jsonData["pizzaName"] = pizzaName;
+	
+	
+	console.log(jsonData);
+	req.collection.findOne(jsonData, function(err, result) {
+		if (err) return next(err)
+		if (!result) return res.json({ "resultCode" : "NODATA", "resultDesc" : "No data."});
+	
+		res.json(result);
+	});
+});
 
 
 //node의 기타 에러 처리
